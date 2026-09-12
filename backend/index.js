@@ -6,9 +6,15 @@ const pool = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//impportar ruta
+const chatRoutes = require('./src/routes/chat.routes');
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+//usar rutas
+app.use('/api', chatRoutes);
 
 // Ruta de prueba
 app.get('/api/test', async (req, res) => {
