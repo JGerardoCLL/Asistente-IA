@@ -1,6 +1,8 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, OnInit, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { finalize } from "rxjs";
+import { GeminiService } from "../services/chat.service";
 
 interface ChatMessage {
     id: number;
@@ -20,6 +22,8 @@ const STORAGE_KEY = 'asistente-ia-chat-history';
 })
 
 export class InterfazComponent implements OnInit {
+    private readonly geminiService = inject(GeminiService);
+
     readonly messages = signal<ChatMessage[]>([]);
     readonly isLoading = signal(false);
     readonly errorMessage = signal('');
@@ -30,22 +34,39 @@ export class InterfazComponent implements OnInit {
     }
 
     sendMessage(): void {
+        //Obtencion de pregunta desde el html
         const content = this.draft.trim();
-        if (!content || this.isLoading()) return;
+
+        if (!content || this.isLoading()) {
+            return;
+        }
 
         this.errorMessage.set('');
         this.addMessage('user', content);
         this.draft = '';
         this.isLoading.set(true);
+        
+        //Envia el mensaje al back en chat.service
+        this.geminiService.generateContent(content)
+            .pipe(
+                finalize(() => {
+                    this.isLoading.set(false);
+                })
+            )
+            .subscribe({
+                next: response => {
+                    this.addMessage('assistant', response.response);
+                },
+                error: error => {
+                    console.error('Error al comunicarse con el backend:', error);
 
-        window.setTimeout(() => {
-            this.isLoading.set(false);
-            if (content.toLowerCase() === 'error') {
-                this.errorMessage.set('No se pudo obtener una respuesta. Intenta de nuevo.');
-                return;
-            }
-            this.addMessage('assistant', 'Esta es una respuesta simulada. El siguiente paso sera conectar este flujo con tu backend.');
-        }, 900);
+                    const backendMessage = error?.error?.error;
+
+                    this.errorMessage.set(
+                        backendMessage || 'No se pudo obtener una respuesta del servidor.'
+                    );
+                }
+            });
     }
 
     clearConversation(): void {
