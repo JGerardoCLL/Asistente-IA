@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require('@google/genai');
+const { SYSTEM_PROMPT } = require('../prompts/systemPrompt');
 
 const ai = new GoogleGenAI({ 
 //Comunicacion directa con gemini, key en .env
@@ -8,6 +9,9 @@ apiKey: process.env.GEMINI_API_KEY });
 async function generateGeminiContent(prompt) {
     const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',
+                //Reglas del asistente
+        config: { systemInstruction: SYSTEM_PROMPT },
+        //pregunta del usuario
         contents: prompt
     });
 
