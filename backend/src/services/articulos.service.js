@@ -1,6 +1,57 @@
 const pool = require('../db/connection');
 
 async function searchArticle(termino) {
+    const palabrasIgnoradas = new Set([
+        'cual',
+        'es',
+        'la',
+        'el',
+        'los',
+        'las',
+        'de',
+        'del',
+        'por',
+        'para',
+        'con',
+        'sin',
+        'una',
+        'uno',
+        'que',
+        'usar',
+        'sobre',
+        'dice'
+    ]);
+
+    const palabras = termino
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .split(/\s+/)
+        .map(palabra => palabra.replace(/[¿?¡!,.;:]/g, ''))
+        .filter(palabra => palabra.length >= 4)
+        .filter(palabra => !palabrasIgnoradas.has(palabra));
+
+    if (palabras.length === 0) {
+        return [];
+    }
+
+    const condiciones = palabras
+        .map(() => `
+            (
+                numero_articulo LIKE ?
+                OR capitulo LIKE ?
+                OR descripcion LIKE ?
+                OR categoria LIKE ?
+            )
+        `)
+        .join(' AND ');
+
+    const parametros = palabras.flatMap(palabra => {
+        const parametro = `%${palabra}%`;
+
+        return [parametro, parametro, parametro, parametro];
+    });
+
     const sql = `
         SELECT
             id,
@@ -12,22 +63,11 @@ async function searchArticle(termino) {
             categoria
 
         FROM articulos
-        
-        WHERE numero_articulo LIKE ?
-           OR capitulo LIKE ?
-           OR descripcion LIKE ?
-           OR categoria LIKE ?
+        WHERE ${condiciones}
         LIMIT 10
     `;
 
-    const parametro = `%${termino}%`;
-
-    const [rows] = await pool.query(sql, [
-        parametro,
-        parametro,
-        parametro,
-        parametro
-    ]);
+    const [rows] = await pool.query(sql, parametros);
 
     return rows;
 }
