@@ -47,6 +47,12 @@ async function generateContent(req, res) {
     } catch (error) {
         console.error('Error al generar contenido:', error);
 
+        if (error?.status === 429) {
+            return res.status(429).json({
+                error: 'Se alcanzo el limite temporal de solicitudes. Intenta de nuevo mas tarde.'
+            });
+        }
+
         return res.status(500).json({
             error: 'No se pudo generar la respuesta'
         });
