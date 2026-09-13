@@ -19,7 +19,19 @@ async function searchArticle(termino) {
         'que',
         'usar',
         'sobre',
-        'dice'
+        'dice',
+        'pasa',
+        'llevo',
+        'llevar',
+        'puede',
+        'podria',
+        'ocurre',
+        'multa',
+        'multas',
+        'infraccion',
+        'infracciones',
+        'reglamento',
+        'articulo'
     ]);
 
     const palabras = termino
@@ -27,15 +39,17 @@ async function searchArticle(termino) {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .split(/\s+/)
-        .map(palabra => palabra.replace(/[¿?¡!,.;:]/g, ''))
+        .map(palabra => palabra.replace(/[¿?¡!,.;:()]/g, ''))
         .filter(palabra => palabra.length >= 4)
         .filter(palabra => !palabrasIgnoradas.has(palabra));
 
-    if (palabras.length === 0) {
+    const palabrasUnicas = [...new Set(palabras)];
+
+    if (palabrasUnicas.length === 0) {
         return [];
     }
 
-    const condiciones = palabras
+    const condiciones = palabrasUnicas
         .map(() => `
             (
                 numero_articulo LIKE ?
@@ -44,13 +58,29 @@ async function searchArticle(termino) {
                 OR categoria LIKE ?
             )
         `)
-        .join(' AND ');
+        .join(' OR ');
 
-    const parametros = palabras.flatMap(palabra => {
+    const relevancia = palabrasUnicas
+        .map(() => `
+            CASE WHEN
+                numero_articulo LIKE ?
+                OR capitulo LIKE ?
+                OR descripcion LIKE ?
+                OR categoria LIKE ?
+            THEN 1 ELSE 0 END
+        `)
+        .join(' + ');
+
+    const parametrosPorPalabra = palabrasUnicas.flatMap(palabra => {
         const parametro = `%${palabra}%`;
 
         return [parametro, parametro, parametro, parametro];
     });
+
+    const parametros = [
+        ...parametrosPorPalabra,
+        ...parametrosPorPalabra
+    ];
 
     const sql = `
         SELECT
@@ -60,10 +90,12 @@ async function searchArticle(termino) {
             descripcion,
             multa_min_cuotas,
             multa_max_cuotas,
-            categoria
+            categoria,
+            (${relevancia}) AS relevancia
 
         FROM articulos
         WHERE ${condiciones}
+        ORDER BY relevancia DESC
         LIMIT 10
     `;
 
