@@ -1,6 +1,5 @@
-const {
-    generateGeminiContent
-} = require('../services/gemini.service');
+const { generateGeminiContent } = require('../services/gemini.service');
+const { searchArticle } = require('../services/articulos.service');
 
 async function generateContent(req, res) {
     //Recibe pregunta
@@ -14,8 +13,33 @@ async function generateContent(req, res) {
     }
     
     try {
-        //Llama al servico de gemini
-        const response = await generateGeminiContent(prompt.trim());
+        //Obtiene articulos
+        const articulos = await searchArticle(prompt.trim());
+        //Construye contexto
+        const contexto = articulos.length
+        ? articulos.map(articulo => `
+        Artículo: ${articulo.numero_articulo}
+        Capítulo: ${articulo.capitulo}
+        Descripción: ${articulo.descripcion}
+        Multa mínima: ${articulo.multa_min_cuotas ?? 'No especificada'}
+        Multa máxima: ${articulo.multa_max_cuotas ?? 'No especificada'}
+        Categoría: ${articulo.categoria}
+        `).join('\n')
+        :'No se encontraron artículos relacionados en el reglamento.';
+
+        const promptWithContext = `
+        CONTEXTO DEL REGLAMENTO:
+        ${contexto}
+
+        PREGUNTA DEL USUARIO:
+        ${prompt.trim()}
+
+        INSTRUCCIÓN:
+        Responde únicamente usando el contexto proporcionado.
+        `;
+
+        //Llama al servico de gemini y usa el contexto para el prompt
+        const response = await generateGeminiContent(promptWithContext);
         //Regresa respuesta al front
         return res.json({
             response
