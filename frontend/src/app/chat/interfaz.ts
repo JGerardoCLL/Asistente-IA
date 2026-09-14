@@ -24,6 +24,7 @@ const STORAGE_KEY = 'asistente-ia-chat-history';
 export class InterfazComponent implements OnInit {
     private readonly geminiService = inject(GeminiService);
 
+    readonly imagenUrl = 'perfilia.jpeg';
     readonly messages = signal<ChatMessage[]>([]);
     readonly isLoading = signal(false);
     readonly errorMessage = signal('');
@@ -55,7 +56,7 @@ export class InterfazComponent implements OnInit {
             )
             .subscribe({
                 next: response => {
-                    this.addMessage('assistant', response.response);
+                    this.addMessage('assistant', this.cleanMarkdown(response.response));
                 },
                 error: error => {
                     console.error('Error al comunicarse con el backend:', error);
@@ -88,6 +89,13 @@ export class InterfazComponent implements OnInit {
         this.persistHistory();
     }
 
+    private cleanMarkdown(content: string): string {
+        return content
+            .replace(/\*\*/g, '')
+            .replace(/^#{1,6}\s*/gm, '')
+            .trim();
+    }
+
     //Recuperar conversacion guardada en naveg cuando se recarga (busca en local storage)
     private loadHistory(): void {
         const savedHistory = localStorage.getItem(STORAGE_KEY);
@@ -97,7 +105,9 @@ export class InterfazComponent implements OnInit {
         }
         try {
             const history = JSON.parse(savedHistory) as ChatMessage[];
-            this.messages.set(history.length ? history : [this.welcomeMessage()]);
+            this.messages.set(history.length
+                ? history.map(message => ({ ...message, content: this.cleanMarkdown(message.content) }))
+                : [this.welcomeMessage()]);
         } catch {
             this.messages.set([this.welcomeMessage()]);
         }
