@@ -1,6 +1,29 @@
 const { generateGeminiContent } = require('../services/gemini.service');
 const { searchArticle } = require('../services/articulos.service');
 
+const UMA_DIARIA_PESOS = Number(process.env.UMA_DIARIA_PESOS || 113.14);
+
+function convertirAPesos(umas) {
+    if (umas === null || umas === undefined || !Number.isFinite(Number(umas))) {
+        return null;
+    }
+
+    return Number(umas) * UMA_DIARIA_PESOS;
+}
+
+function formatearPesos(cantidad) {
+    if (cantidad === null) {
+        return 'No especificada';
+    }
+
+    return cantidad.toLocaleString('es-MX', {
+        style: 'currency',
+        currency: 'MXN',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 async function generateContent(req, res) {
     //Recibe pregunta
     const { prompt } = req.body;
@@ -21,8 +44,8 @@ async function generateContent(req, res) {
         Artículo: ${articulo.numero_articulo}
         Capítulo: ${articulo.capitulo}
         Descripción: ${articulo.descripcion}
-        Multa mínima: ${articulo.multa_min_cuotas ?? 'No especificada'}
-        Multa máxima: ${articulo.multa_max_cuotas ?? 'No especificada'}
+        Multa mínima: ${articulo.multa_min_cuotas ?? 'No especificada'} UMAs (${formatearPesos(convertirAPesos(articulo.multa_min_cuotas))})
+        Multa máxima: ${articulo.multa_max_cuotas ?? 'No especificada'} UMAs (${formatearPesos(convertirAPesos(articulo.multa_max_cuotas))})
         Categoría: ${articulo.categoria}
         `).join('\n')
         :'No se encontraron artículos relacionados en el reglamento.';
