@@ -35,7 +35,7 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ASISTENTEDTRANSITO CHARACTER 
 mysql -u root -p ASISTENTEDTRANSITO < database/schema.sql
 ```
 
-Si tu instalación usa otro usuario, contraseña, host o puerto, ajusta esos comandos y las variables de entorno. En phpMyAdmin también puedes crear la base `ASISTENTEDTRANSITO` e importar `database/schema.sql`.
+Si tu instalación usa otro usuario, contraseña, host o puerto, ajusta esos comandos y las variables de entorno. El usuario indicado en el ejemplo (`local`) debe existir en MySQL y tener permisos sobre `ASISTENTEDTRANSITO`; puedes usar `root` para una instalación local de prueba si corresponde. En phpMyAdmin también puedes crear la base `ASISTENTEDTRANSITO` e importar `database/schema.sql`.
 
 ## Variables de entorno
 
@@ -109,6 +109,8 @@ El endpoint del chat es `POST http://localhost:3000/api/gemini` y recibe un JSON
 }
 ```
 
+Si el chat responde con `429 Too Many Requests`, el backend sí recibió la solicitud, pero Gemini rechazó la llamada por límite de cuota o solicitudes. Espera, revisa la cuota de Google AI Studio o usa una API key/proyecto con cuota disponible.
+
 ### 4. Iniciar el frontend
 
 En otra terminal:
@@ -158,4 +160,4 @@ npm run dev
 `backend/.env` contiene credenciales y está excluido por `.gitignore`. Nunca publiques ese archivo. Si una API key se expone accidentalmente, revócala desde Google AI Studio y genera una nueva.
 
 ## Interfaz de Chat
-![alt text](image.png)
+![Interfaz del chat](frontend/public/perfilia.jpeg)
