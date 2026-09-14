@@ -30,6 +30,15 @@
                 <div class="message-content"><div class="message-meta"><strong>{{ message.role === 'assistant' ? 'Asistente' : 'Tu' }}</strong><time>{{ message.createdAt | date:'shortTime' }}</time></div><p>{{ message.content }}</p></div>
             </article>
 
+            <section class="suggested-questions" *ngIf="messages().length === 1 && !isLoading()" aria-labelledby="suggested-questions-title">
+                <h3 id="suggested-questions-title">Preguntas frecuentes</h3>
+                <div class="suggested-question-list">
+                    <button *ngFor="let question of suggestedQuestions" type="button" (click)="askSuggestedQuestion(question)">
+                        {{ question }}
+                    </button>
+                </div>
+            </section>
+
             <!--ngIf 1 para indicador de carga-->
             <div class="loading-row" *ngIf="isLoading()" aria-label="El asistente esta escribiendo">
             <div class="message-avatar"><img [src]="imagenUrl" alt="Asistente"></div>

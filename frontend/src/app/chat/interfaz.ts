@@ -25,6 +25,11 @@ export class InterfazComponent implements OnInit {
     private readonly geminiService = inject(GeminiService);
 
     readonly imagenUrl = 'perfilia.jpeg';
+    readonly suggestedQuestions = [
+        '¿Cuánto es la multa por exceso de velocidad?',
+        '¿Qué documentos debo llevar al conducir?',
+        '¿Cómo consulto una multa de tránsito?'
+    ];
     readonly messages = signal<ChatMessage[]>([]);
     readonly isLoading = signal(false);
     readonly errorMessage = signal('');
@@ -68,6 +73,11 @@ export class InterfazComponent implements OnInit {
                     );
                 }
             });
+    }
+
+    askSuggestedQuestion(question: string): void {
+        this.draft = question;
+        this.sendMessage();
     }
 
     clearConversation(): void {

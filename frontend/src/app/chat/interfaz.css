@@ -285,6 +285,41 @@ h2 {
   font-size: 14px;
   line-height: 1.7;
 }
+.suggested-questions {
+  max-width: 700px;
+  margin: 6px 0 30px 48px;
+}
+.suggested-questions h3 {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font:
+    700 10px 'Courier New',
+    monospace;
+  text-transform: uppercase;
+}
+.suggested-question-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.suggested-question-list button {
+  padding: 10px 13px;
+  border: 1px solid #3a3a3a;
+  border-radius: 9px;
+  color: #dddddd;
+  background: #111111;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+.suggested-question-list button:hover,
+.suggested-question-list button:focus-visible {
+  border-color: var(--accent);
+  color: #ffffff;
+  outline: none;
+}
 .typing-indicator {
   display: flex;
   gap: 4px;
@@ -414,5 +449,8 @@ textarea::placeholder {
   }
   .message-content p {
     font-size: 13px;
+  }
+  .suggested-questions {
+    margin-left: 48px;
   }
 }
