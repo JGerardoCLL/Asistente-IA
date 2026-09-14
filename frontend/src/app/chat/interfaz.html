@@ -1,9 +1,12 @@
 <main class="chat-shell">
+
     <aside class="history-panel" aria-label="Historial de la conversacion">
-        <div class="brand-mark" aria-hidden="true">AI</div>
+        <div class="brand-mark">
+            <img [src]="imagenUrl" alt="Logo de Perfilia">
+        </div>
+
         <div class="history-heading">
-            <div><p class="eyebrow">Workspace</p><h1>Conversaciones</h1></div>
-            <button class="icon-button" type="button" title="Nuevo chat" aria-label="Nuevo chat" (click)="clearConversation()">+</button>
+            <div ><h1>Conversaciones</h1></div>
         </div>
         <button class="new-chat-button" type="button" (click)="clearConversation()"><span aria-hidden="true">+</span>Nuevo chat</button>
         <div class="history-list">
@@ -14,19 +17,22 @@
     </aside>
 
     <section class="conversation" aria-label="Conversacion con el asistente">
-        <header class="conversation-header"><div><p class="eyebrow">Asistente IA</p><h2>Asistente general</h2></div><div class="connection-status"><span class="status-dot"></span>Listo</div></header>
+        <header class="conversation-header"><div><h2>Asistente de Transito</h2></div><div class="connection-status"><span class="status-dot"></span>Listo</div></header>
         <div class="message-area" aria-live="polite">
             <div class="date-divider"><span>Conversacion actual</span></div>
 
             <!--ngFor para recorrer el chat para abajo-->
             <article class="message-row" *ngFor="let message of messages(); trackBy: trackMessage" [class.user-row]="message.role === 'user'">
-                <div class="message-avatar" [class.user-avatar]="message.role === 'user'">{{ message.role === 'assistant' ? 'AI' : 'TU' }}</div>
+                <div class="message-avatar" [class.user-avatar]="message.role === 'user'">
+                    <img *ngIf="message.role === 'assistant'; else userInitials" [src]="imagenUrl" alt="Asistente">
+                    <ng-template #userInitials>TU</ng-template>
+                </div>
                 <div class="message-content"><div class="message-meta"><strong>{{ message.role === 'assistant' ? 'Asistente' : 'Tu' }}</strong><time>{{ message.createdAt | date:'shortTime' }}</time></div><p>{{ message.content }}</p></div>
             </article>
 
             <!--ngIf 1 para indicador de carga-->
             <div class="loading-row" *ngIf="isLoading()" aria-label="El asistente esta escribiendo">
-            <div class="message-avatar">AI</div>
+            <div class="message-avatar"><img [src]="imagenUrl" alt="Asistente"></div>
             <div class="typing-indicator"><span></span><span></span><span></span><em>Escribiendo...</em></div>
             </div>
 
@@ -43,7 +49,7 @@
             <!--Enlazar textarea con componente con "ngModel = draft"-->
         <textarea name="message" [(ngModel)]="draft" rows="1" [disabled]="isLoading()" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje" (keydown.enter)="$event.preventDefault(); sendMessage()"></textarea>
         <button class="send-button" type="submit" [disabled]="!draft.trim() || isLoading()" title="Enviar mensaje" aria-label="Enviar mensaje">&#8593;</button>
-        </form><p class="composer-note">La conversacion se guarda localmente en este navegador.</p>
+        </form>
         </footer>
 
     </section>
