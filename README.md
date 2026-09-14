@@ -160,4 +160,4 @@ npm run dev
 `backend/.env` contiene credenciales y está excluido por `.gitignore`. Nunca publiques ese archivo. Si una API key se expone accidentalmente, revócala desde Google AI Studio y genera una nueva.
 
 ## Interfaz de Chat
-![Interfaz del chat](frontend/public/perfilia.jpeg)
+![alt text](image-1.png)
