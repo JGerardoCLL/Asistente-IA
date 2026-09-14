@@ -9,7 +9,6 @@ multa_max_cuotas INT NULL,
 categoria VARCHAR(60) NOT NULL
 );
 CREATE TABLE logs_consultas (
--- opcional
 id INT AUTO_INCREMENT PRIMARY KEY,
 pregunta_usuario TEXT NOT NULL,
 respuesta_ia TEXT NOT NULL,
