@@ -30,9 +30,12 @@ export class InterfazComponent implements OnInit {
         '¿Qué documentos debo llevar al conducir?',
         '¿Cómo consulto una multa de tránsito?'
     ];
+    //lista con la conversacion
     readonly messages = signal<ChatMessage[]>([]);
+
     readonly isLoading = signal(false);
     readonly errorMessage = signal('');
+
     draft = '';
 
     ngOnInit(): void {
@@ -40,7 +43,7 @@ export class InterfazComponent implements OnInit {
     }
 
     sendMessage(): void {
-        //Obtencion de pregunta desde el html
+        // Obtiene el nuevo mensaje desde el formulario
         const content = this.draft.trim();
 
         if (!content || this.isLoading()) {
@@ -48,12 +51,13 @@ export class InterfazComponent implements OnInit {
         }
 
         this.errorMessage.set('');
+        //se agrega el mensaje a la conversacion
         this.addMessage('user', content);
         this.draft = '';
         this.isLoading.set(true);
         
-        //Envia el mensaje al back en chat.service
-        this.geminiService.generateContent(content)
+        // Envia el historial actualizado al backend
+        this.geminiService.generateContent(this.messages())
             .pipe(
                 finalize(() => {
                     this.isLoading.set(false);
@@ -106,7 +110,7 @@ export class InterfazComponent implements OnInit {
             .trim();
     }
 
-    //Recuperar conversacion guardada en naveg cuando se recarga (busca en local storage)
+    // Recupera la conversacion guardada en el navegador al recargar
     private loadHistory(): void {
         const savedHistory = localStorage.getItem(STORAGE_KEY);
         if (!savedHistory) {

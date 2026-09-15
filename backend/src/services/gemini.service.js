@@ -5,14 +5,18 @@ const ai = new GoogleGenAI({
 //Comunicacion directa con gemini, key en .env
 apiKey: process.env.GEMINI_API_KEY });
 
-//enviar prompts al modelo Gemini y devolver el texto generado
-async function generateGeminiContent(prompt) {
+// Envia el historial de la conversacion al modelo y devuelve el texto generado
+async function generateGeminiContent(messages) {
     const response = await ai.models.generateContent({
         model: 'gemini-3.5-flash-lite',
-                //Reglas del asistente
+        // Reglas del asistente
         config: { systemInstruction: SYSTEM_PROMPT },
-        //pregunta del usuario
-        contents: prompt
+        
+        // Historial convertido al formato de Gemini
+        contents: messages.map(message => ({
+            role: message.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: message.content }]
+        }))
     });
 
     return response.text;  
