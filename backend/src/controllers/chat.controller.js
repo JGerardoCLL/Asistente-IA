@@ -25,19 +25,31 @@ function formatearPesos(cantidad) {
 }
 
 async function generateContent(req, res) {
-    //Recibe pregunta
-    const { prompt } = req.body;
+    // Recibe el historial de la conversacion
+    const { messages } = req.body;
+    // Mensaje actual del usuario
+    const prompt = messages?.at(-1)?.content;
 
-    //Checa que no este vacio
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+    // Construye una consulta de búsqueda a partir de los últimos mensajes del usuario
+    const userMessages = (Array.isArray(messages) ? messages.filter(m => m.role === 'user').map(m => m.content) : []);
+    const SEARCH_WINDOW = 3; // cuántos mensajes previos combinar
+    const searchQuery = userMessages.slice(-SEARCH_WINDOW).join(' ');
+
+    // Valida que exista al menos un mensaje con contenido
+    if (!Array.isArray(messages) ||
+        !messages.length ||
+        !prompt ||
+        typeof prompt !== 'string' ||
+        !prompt.trim()
+       ) {
         return res.status(400).json({
             error: 'El prompt es obligatorio'
         });
     }
     
     try {
-        //Obtiene articulos
-        const articulos = await searchArticle(prompt.trim());
+        // Obtiene artículos usando la consulta construida del historial
+        const articulos = await searchArticle((searchQuery && searchQuery.trim()) ? searchQuery.trim() : prompt.trim());
         //Construye contexto
         const contexto = articulos.length
         ? articulos.map(articulo => `
@@ -61,9 +73,21 @@ async function generateContent(req, res) {
         Responde únicamente usando el contexto proporcionado.
         `;
 
-        //Llama al servico de gemini y usa el contexto para el prompt
-        const response = await generateGeminiContent(promptWithContext);
-        //Regresa respuesta al front
+        // Copia el historial y agrega el contexto del reglamento al ultimo mensaje
+        const conversation = messages.map(message => ({
+            role: message.role,
+            content: message.content
+        }));
+
+        conversation[conversation.length - 1].content = promptWithContext;
+
+        const MAX_MESSAGES = 10;
+        const limitedConversation = conversation.slice(-MAX_MESSAGES);
+
+        // Envia al modelo la conversacion limitada para conservar el contexto
+        const response = await generateGeminiContent(limitedConversation);
+
+        // Regresa la respuesta al frontend
         return res.json({
             response
         });
